@@ -7,18 +7,27 @@ const associateMachine = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method === 'POST') {
     const { userId, planId } = req.body;
 
-    await dbConnect();
+    await dbConnect(); // Conecta ao banco de dados
 
     try {
       // Busque a máquina disponível
-      const availableMachine = await Machine.findOne({ /* critério para encontrar a máquina disponível */ });
+      const availableMachine = await Machine.findOne({ assignedTo: null }); // Critério para encontrar máquina disponível
 
       if (!availableMachine) {
         return res.status(404).json({ error: 'Máquina não encontrada.' });
       }
 
-      // Associar a máquina ao usuário
-      await User.findByIdAndUpdate(userId, { $set: { machineId: availableMachine._id } });
+      // Atualize o campo assignedTo da máquina para o usuário
+      availableMachine.assignedTo = userId;
+      await availableMachine.save();
+
+      // Associar a máquina ao usuário e adicionar o plano
+      await User.findByIdAndUpdate(userId, { 
+        $set: { 
+          machineId: availableMachine._id, // Associa a máquina ao usuário
+          plan: planId // Atribui o plano ao usuário
+        } 
+      });
 
       res.status(200).json({ message: 'Máquina associada com sucesso.' });
     } catch (error) {
