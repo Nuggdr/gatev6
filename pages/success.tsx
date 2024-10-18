@@ -5,6 +5,7 @@ const SuccessPage = () => {
   const router = useRouter();
   const { userId, planId } = router.query;
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null); // Para armazenar possíveis erros
 
   useEffect(() => {
     if (userId && planId) {
@@ -16,19 +17,26 @@ const SuccessPage = () => {
         },
         body: JSON.stringify({ userId, planId }),
       })
-        .then((res) => res.json())
-        .then((data) => {
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error('Erro na atribuição da máquina');
+          }
+          return res.json();
+        })
+        .then(() => {
           setLoading(false);
-          // Aqui você pode exibir uma mensagem de sucesso para o cliente
         })
         .catch((err) => {
           setLoading(false);
+          setError(err.message); // Armazena a mensagem de erro
           console.error('Erro ao atribuir a máquina:', err);
         });
     }
   }, [userId, planId]);
 
   if (loading) return <p>Atribuindo a máquina ao usuário...</p>;
+  
+  if (error) return <p>Ocorreu um erro: {error}</p>; // Exibe mensagem de erro, se houver
 
   return <p>Máquina atribuída com sucesso!</p>;
 };
