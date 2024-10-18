@@ -19,27 +19,26 @@ const handlePayment = async (req: NextApiRequest, res: NextApiResponse) => {
         },
       ],
       back_urls: {
-        success: `http://localhost:3000/success?userId=${userId}&planId=${planId}`,
+        success: `http://localhost:3000/success?userId=${userId}&planId=${planId}`, // Localhost para ambiente de desenvolvimento
         failure: `http://localhost:3000/failure`,
         pending: `http://localhost:3000/pending`,
       },
       auto_return: 'approved',
       payment_methods: {
-        excluded_payment_types: [{ id: 'ticket' }],
-        installments: 1,
-        default_payment_method_id: 'pix',
+        excluded_payment_types: [{ id: 'ticket' }], // Exclui pagamento por boleto
+        installments: 1, // Limita a 1 parcela
+        default_payment_method_id: 'pix', // Define o PIX como método de pagamento padrão
       },
-      // Aqui é onde você deve colocar a informação adicional
       additional_info: JSON.stringify({
-        userId,  // Envia o userId
-        planId,  // Envia o planId
+        userId, // Informações adicionais enviadas no pagamento
+        planId,
       }),
-      notification_url: 'https://seu-dominio.com/api/mercado-pago-webhook', // Notificação do Webhook
+      notification_url: 'https://seu-dominio.com/api/mercado-pago-webhook', // URL para o Webhook de notificação
     };
 
     try {
       const response = await mercadopago.preferences.create(preference);
-      res.status(200).json({ link: response.body.init_point });
+      res.status(200).json({ link: response.body.init_point }); // Retorna o link de pagamento
     } catch (error) {
       if (error instanceof Error) {
         console.error('Erro ao criar preferência:', (error as any)?.response?.data || error.message);
